@@ -1,16 +1,62 @@
-# projeto_flutter
+# Desenvolvimento Mobile com Flutter [25E2_2]
 
-Desenvolvimento Mobile com Flutter [25E2_2]
+Aplicativo Flutter para gerenciamento de tarefas com geolocalização.
 
-## Getting Started
+## Funcionalidades
 
-This project is a starting point for a Flutter application.
+- Criação de tarefas
+- Edição de tarefas
+- Exclusão de tarefas
+- Marcação de tarefas como concluídas
+- Captura de localização via GPS
+- Seleção de data e hora para cada tarefa
 
-A few resources to get you started if this is your first Flutter project:
+## Screenshots
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Lista de Tarefas
+![Lista de Tarefas](screenshots/lista_tarefas.png)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Tela de Criação/Edição
+![Formulário de Tarefa](screenshots/form_tarefa.png)
+
+### Editar ou Excluir
+![Captura de Editar/Excluir](screenshots/lista_editar_excluir.png)
+
+### Confirmação de Exclusão
+![Confirmação de Exclusão](screenshots/confirmacao_exclusao.png)
+
+## Como Executar
+
+1. Clone o repositório:
+```bash
+git clone https://github.com/xalexandre/projeto_flutter.git
+```
+
+2. Entre no diretório do projeto:
+```bash
+cd projeto_flutter
+```
+
+3. Instale as dependências:
+```bash
+flutter pub get
+```
+
+4. Execute o aplicativo:
+```bash
+flutter run
+```
+
+## Requisitos
+
+- Flutter SDK
+- Android Studio ou VS Code
+- Dispositivo Android ou iOS para testes
+- Permissões de localização habilitadas no dispositivo
+
+## Tecnologias Utilizadas
+
+- Flutter
+- Dart
+- Geolocator
+- Material Design 3
