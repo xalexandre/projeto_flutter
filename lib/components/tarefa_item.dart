@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/tarefa.dart';
 import '../services/tarefa_service.dart';
+import '../utils/responsive_util.dart';
 
 class TarefaItem extends StatelessWidget {
   final Tarefa tarefa;
@@ -20,100 +21,177 @@ class TarefaItem extends StatelessWidget {
     final theme = Theme.of(context);
     final isConcluida = tarefa.concluida;
 
+    // Determinar o estilo baseado no tamanho da tela
+    final isTablet = ResponsiveUtil.isTablet(context);
+    final isLandscape = ResponsiveUtil.isLandscape(context);
+    
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: ResponsiveUtil.responsivePadding(
+        context, 
+        horizontal: 16, 
+        vertical: 8,
+      ),
       child: InkWell(
         onTap: () => onEditar(tarefa),
         borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Checkbox(
-                    value: isConcluida,
-                    onChanged: (value) => context.read<TarefaService>().marcarComoConcluida(tarefa.id, value ?? false),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      tarefa.nome,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        decoration: isConcluida ? TextDecoration.lineThrough : null,
-                        color: isConcluida ? theme.colorScheme.outline : null,
+        child: Container(
+          constraints: BoxConstraints(
+            minHeight: isTablet ? 120 : 100,
+          ),
+          child: Padding(
+            padding: ResponsiveUtil.responsivePadding(context, all: 12),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Determinar o estilo baseado no espaço disponível
+                final isVeryConstrained = constraints.maxHeight < 100 || constraints.maxWidth < 200;
+                final isExtremelyConstrained = constraints.maxHeight < 80 || constraints.maxWidth < 150;
+                
+                // Em casos extremos, mostrar apenas as informações essenciais
+                if (isExtremelyConstrained) {
+                  return Row(
+                    children: [
+                      Checkbox(
+                        value: isConcluida,
+                        onChanged: (value) => context.read<TarefaService>()
+                            .marcarComoConcluida(tarefa.id, value ?? false),
+                        visualDensity: VisualDensity.compact,
                       ),
-                    ),
-                  ),
-                  PopupMenuButton<String>(
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, color: theme.colorScheme.primary),
-                            const SizedBox(width: 8),
-                            const Text('Editar'),
-                          ],
+                      Expanded(
+                        child: Text(
+                          tarefa.nome,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontSize: ResponsiveUtil.adaptiveFontSize(context, 14),
+                            decoration: isConcluida ? TextDecoration.lineThrough : null,
+                          ),
                         ),
                       ),
-                      PopupMenuItem(
-                        value: 'delete',
+                    ],
+                  );
+                }
+                
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: isConcluida,
+                          onChanged: (value) => context.read<TarefaService>()
+                              .marcarComoConcluida(tarefa.id, value ?? false),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          visualDensity: isVeryConstrained ? VisualDensity.compact : null,
+                        ),
+                        Expanded(
+                          child: Text(
+                            tarefa.nome,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              decoration: isConcluida ? TextDecoration.lineThrough : null,
+                              color: isConcluida ? theme.colorScheme.outline : null,
+                              fontSize: ResponsiveUtil.adaptiveFontSize(context, isVeryConstrained ? 14 : 16),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: isVeryConstrained ? 1 : 2,
+                          ),
+                        ),
+                        PopupMenuButton<String>(
+                          padding: EdgeInsets.zero,
+                          iconSize: isVeryConstrained ? 20 : 24,
+                          itemBuilder: (context) => [
+                            PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit, color: theme.colorScheme.primary),
+                                  const SizedBox(width: 8),
+                                  const Text('Editar'),
+                                ],
+                              ),
+                            ),
+                            PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete, color: theme.colorScheme.error),
+                                  const SizedBox(width: 8),
+                                  const Text('Excluir'),
+                                ],
+                              ),
+                            ),
+                          ],
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              onEditar(tarefa);
+                            } else if (value == 'delete') {
+                              onExcluir(tarefa.id);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    // Espaçamento adaptativo
+                    if (!isVeryConstrained) 
+                      SizedBox(height: ResponsiveUtil.adaptiveHeight(context, 4)),
+                    // Informações de data compactas
+                    SizedBox(
+                      height: isVeryConstrained ? 16 : 20,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.calendar_today,
+                            size: ResponsiveUtil.adaptiveWidth(context, isVeryConstrained ? 12 : 16),
+                            color: theme.colorScheme.primary,
+                          ),
+                          SizedBox(width: ResponsiveUtil.adaptiveWidth(context, 4)),
+                          Expanded(
+                            child: Text(
+                              '${tarefa.dataHora.day}/${tarefa.dataHora.month}/${tarefa.dataHora.year} ${tarefa.dataHora.hour}:${tarefa.dataHora.minute.toString().padLeft(2, '0')}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: ResponsiveUtil.adaptiveFontSize(context, isVeryConstrained ? 10 : 12),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // Localização apenas se houver espaço suficiente
+                    if (!isVeryConstrained && tarefa.localizacao != null) ...[
+                      SizedBox(height: ResponsiveUtil.adaptiveHeight(context, 4)),
+                      SizedBox(
+                        height: 20,
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Icon(Icons.delete, color: theme.colorScheme.error),
-                            const SizedBox(width: 8),
-                            const Text('Excluir'),
+                            Icon(
+                              Icons.location_on,
+                              size: ResponsiveUtil.adaptiveWidth(context, 16),
+                              color: theme.colorScheme.primary,
+                            ),
+                            SizedBox(width: ResponsiveUtil.adaptiveWidth(context, 4)),
+                            Expanded(
+                              child: Text(
+                                '${tarefa.localizacao!.latitude.toStringAsFixed(4)}, ${tarefa.localizacao!.longitude.toStringAsFixed(4)}',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontSize: ResponsiveUtil.adaptiveFontSize(context, 12),
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     ],
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        onEditar(tarefa);
-                      } else if (value == 'delete') {
-                        onExcluir(tarefa.id);
-                      }
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    size: 16,
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${tarefa.dataHora.day}/${tarefa.dataHora.month}/${tarefa.dataHora.year} ${tarefa.dataHora.hour}:${tarefa.dataHora.minute.toString().padLeft(2, '0')}',
-                    style: theme.textTheme.bodySmall,
-                  ),
-                ],
-              ),
-              if (tarefa.localizacao != null) ...[
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 16,
-                      color: theme.colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${tarefa.localizacao!.latitude.toStringAsFixed(4)}, ${tarefa.localizacao!.longitude.toStringAsFixed(4)}',
-                      style: theme.textTheme.bodySmall,
-                    ),
                   ],
-                ),
-              ],
-            ],
+                );
+              },
+            ),
           ),
         ),
       ),

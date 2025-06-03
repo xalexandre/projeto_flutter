@@ -4,6 +4,7 @@ import '../components/tarefa_item.dart';
 import 'tarefa_form_page.dart';
 import '../models/tarefa.dart';
 import '../services/tarefa_service.dart';
+import '../utils/responsive_util.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -55,6 +56,13 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isTablet = ResponsiveUtil.isTablet(context);
+    final isLandscape = ResponsiveUtil.isLandscape(context);
+    
+    // Define o número de colunas baseado no tamanho e orientação da tela
+    final columnCount = isTablet 
+        ? (isLandscape ? 3 : 2)  // Tablet: 3 colunas em paisagem, 2 em retrato
+        : (isLandscape ? 2 : 1); // Telefone: 2 colunas em paisagem, 1 em retrato
 
     return Scaffold(
       appBar: AppBar(
@@ -66,45 +74,77 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: Consumer<TarefaService>(
-        builder: (context, tarefaService, child) {
-          if (tarefaService.tarefas.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.task_alt,
-                    size: 64,
-                    color: theme.colorScheme.primary.withOpacity(0.5),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Consumer<TarefaService>(
+            builder: (context, tarefaService, child) {
+              if (tarefaService.tarefas.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.task_alt,
+                        size: ResponsiveUtil.adaptiveWidth(context, 64),
+                        color: theme.colorScheme.primary.withOpacity(0.5),
+                      ),
+                      SizedBox(height: ResponsiveUtil.adaptiveHeight(context, 16)),
+                      Text(
+                        'Nenhuma tarefa cadastrada',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.5),
+                          fontSize: ResponsiveUtil.adaptiveFontSize(context, 18),
+                        ),
+                      ),
+                      SizedBox(height: ResponsiveUtil.adaptiveHeight(context, 8)),
+                      Text(
+                        'Toque no botão + para adicionar uma nova tarefa',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.5),
+                          fontSize: ResponsiveUtil.adaptiveFontSize(context, 14),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Nenhuma tarefa cadastrada',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.5),
-                    ),
+                );
+              }
+              
+              // Layout responsivo: GridView para tablets/landscape, ListView para phones/portrait
+              if (columnCount > 1) {
+                return GridView.builder(
+                  padding: ResponsiveUtil.responsivePadding(context, all: 8),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: columnCount,
+                    // Ajustando a proporção para dar mais espaço em altura para cada item
+                    childAspectRatio: isLandscape ? 1.8 : 1.5,
+                    crossAxisSpacing: ResponsiveUtil.adaptiveWidth(context, 8),
+                    mainAxisSpacing: ResponsiveUtil.adaptiveHeight(context, 8),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Toque no botão + para adicionar uma nova tarefa',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface.withOpacity(0.5),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: tarefaService.tarefas.length,
-            itemBuilder: (context, index) {
-              final tarefa = tarefaService.tarefas[index];
-              return TarefaItem(
-                tarefa: tarefa,
-                onEditar: _editarTarefa,
-                onExcluir: _excluirTarefa,
+                  itemCount: tarefaService.tarefas.length,
+                  itemBuilder: (context, index) {
+                    final tarefa = tarefaService.tarefas[index];
+                    return TarefaItem(
+                      tarefa: tarefa,
+                      onEditar: _editarTarefa,
+                      onExcluir: _excluirTarefa,
+                    );
+                  },
+                );
+              }
+              
+              // ListView para telefones em modo retrato
+              return ListView.builder(
+                padding: ResponsiveUtil.responsivePadding(context, vertical: 8),
+                itemCount: tarefaService.tarefas.length,
+                itemBuilder: (context, index) {
+                  final tarefa = tarefaService.tarefas[index];
+                  return TarefaItem(
+                    tarefa: tarefa,
+                    onEditar: _editarTarefa,
+                    onExcluir: _excluirTarefa,
+                  );
+                },
               );
             },
           );

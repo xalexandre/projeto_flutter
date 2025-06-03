@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/tarefa.dart';
 import '../models/geo_point.dart';
 import '../services/tarefa_service.dart';
+import '../utils/responsive_util.dart';
 
 class TarefaFormPage extends StatefulWidget {
   final Tarefa? tarefa;
@@ -108,19 +109,33 @@ class _TarefaFormPageState extends State<TarefaFormPage> {
       appBar: AppBar(
         title: Text(widget.tarefa == null ? 'Nova Tarefa' : 'Editar Tarefa'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _nomeController,
-                decoration: const InputDecoration(
-                  labelText: 'Nome da Tarefa',
-                  prefixIcon: Icon(Icons.task),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          // Layout responsivo baseado na largura disponível
+          final isWideScreen = constraints.maxWidth > 600;
+          
+          return SingleChildScrollView(
+            padding: ResponsiveUtil.responsivePadding(context, all: 16),
+            child: Center(
+              child: Container(
+                // Em telas maiores, limita a largura do formulário para melhor legibilidade
+                constraints: BoxConstraints(
+                  maxWidth: isWideScreen ? 600 : double.infinity,
                 ),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TextFormField(
+                        controller: _nomeController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nome da Tarefa',
+                          prefixIcon: Icon(Icons.task),
+                        ),
+                        style: TextStyle(
+                          fontSize: ResponsiveUtil.adaptiveFontSize(context, 16),
+                        ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, insira um nome';
@@ -128,10 +143,15 @@ class _TarefaFormPageState extends State<TarefaFormPage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 24),
-              Card(
-                child: ListTile(
-                  title: const Text('Data e Hora'),
+                      SizedBox(height: ResponsiveUtil.adaptiveHeight(context, 24)),
+                      Card(
+                        child: ListTile(
+                          title: Text(
+                            'Data e Hora',
+                            style: TextStyle(
+                              fontSize: ResponsiveUtil.adaptiveFontSize(context, 16),
+                            ),
+                          ),
                   subtitle: Text(
                     '${_dataHora.day}/${_dataHora.month}/${_dataHora.year} ${_dataHora.hour}:${_dataHora.minute.toString().padLeft(2, '0')}',
                   ),
@@ -163,10 +183,15 @@ class _TarefaFormPageState extends State<TarefaFormPage> {
                   },
                 ),
               ),
-              const SizedBox(height: 16),
-              Card(
-                child: ListTile(
-                  title: const Text('Localização'),
+                      SizedBox(height: ResponsiveUtil.adaptiveHeight(context, 16)),
+                      Card(
+                        child: ListTile(
+                          title: Text(
+                            'Localização',
+                            style: TextStyle(
+                              fontSize: ResponsiveUtil.adaptiveFontSize(context, 16),
+                            ),
+                          ),
                   subtitle: Text(
                     _localizacao == null
                         ? 'Nenhuma localização definida'
@@ -176,18 +201,29 @@ class _TarefaFormPageState extends State<TarefaFormPage> {
                   onTap: _obterLocalizacaoAtual,
                 ),
               ),
-              const SizedBox(height: 32),
-              ElevatedButton.icon(
-                onPressed: _submit,
-                icon: const Icon(Icons.save),
-                label: const Text('Salvar'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                      SizedBox(height: ResponsiveUtil.adaptiveHeight(context, 32)),
+                      ElevatedButton.icon(
+                        onPressed: _submit,
+                        icon: const Icon(Icons.save),
+                        label: Text(
+                          'Salvar',
+                          style: TextStyle(
+                            fontSize: ResponsiveUtil.adaptiveFontSize(context, 16),
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            vertical: ResponsiveUtil.adaptiveHeight(context, 16),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
