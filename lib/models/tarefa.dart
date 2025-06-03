@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'geo_point.dart';
 
 class Tarefa {
@@ -37,4 +36,4 @@ class Tarefa {
       concluida: json['concluida'] ?? false,
     );
   }
-} 
+}

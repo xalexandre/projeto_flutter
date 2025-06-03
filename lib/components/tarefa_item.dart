@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/tarefa.dart';
+import '../services/tarefa_service.dart';
 
 class TarefaItem extends StatelessWidget {
   final Tarefa tarefa;
   final Function(Tarefa) onEditar;
   final Function(String) onExcluir;
-  final Function(String, bool) onConcluir;
 
   const TarefaItem({
     super.key,
     required this.tarefa,
     required this.onEditar,
     required this.onExcluir,
-    required this.onConcluir,
   });
 
   @override
@@ -34,7 +34,7 @@ class TarefaItem extends StatelessWidget {
                 children: [
                   Checkbox(
                     value: isConcluida,
-                    onChanged: (value) => onConcluir(tarefa.id, value ?? false),
+                    onChanged: (value) => context.read<TarefaService>().marcarComoConcluida(tarefa.id, value ?? false),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(4),
                     ),
@@ -119,4 +119,4 @@ class TarefaItem extends StatelessWidget {
       ),
     );
   }
-} 
+}

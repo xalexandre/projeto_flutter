@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:provider/provider.dart';
 import '../models/tarefa.dart';
 import '../models/geo_point.dart';
+import '../services/tarefa_service.dart';
 
-class TarefaForm extends StatefulWidget {
+class TarefaFormPage extends StatefulWidget {
   final Tarefa? tarefa;
-  final Function(Tarefa) onSubmit;
 
-  const TarefaForm({
+  const TarefaFormPage({
     super.key,
     this.tarefa,
-    required this.onSubmit,
   });
 
   @override
-  State<TarefaForm> createState() => _TarefaFormState();
+  State<TarefaFormPage> createState() => _TarefaFormPageState();
 }
 
-class _TarefaFormState extends State<TarefaForm> {
+class _TarefaFormPageState extends State<TarefaFormPage> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nomeController;
   late DateTime _dataHora;
@@ -84,21 +84,26 @@ class _TarefaFormState extends State<TarefaForm> {
 
   void _submit() {
     if (_formKey.currentState!.validate()) {
+      final tarefaService = context.read<TarefaService>();
       final tarefa = Tarefa(
         id: widget.tarefa?.id ?? DateTime.now().toString(),
         nome: _nomeController.text,
         dataHora: _dataHora,
         localizacao: _localizacao,
       );
-      widget.onSubmit(tarefa);
+      
+      if (widget.tarefa == null) {
+        tarefaService.adicionarTarefa(tarefa);
+      } else {
+        tarefaService.atualizarTarefa(tarefa);
+      }
+      
       Navigator.of(context).pop();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.tarefa == null ? 'Nova Tarefa' : 'Editar Tarefa'),
@@ -186,4 +191,4 @@ class _TarefaFormState extends State<TarefaForm> {
       ),
     );
   }
-} 
+}

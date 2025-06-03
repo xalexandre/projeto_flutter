@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../components/tarefa_item.dart';
-import '../components/tarefa_form.dart';
+import 'tarefa_form_page.dart';
 import '../models/tarefa.dart';
 import '../services/tarefa_service.dart';
 
@@ -12,14 +13,10 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final TarefaService _tarefaService = TarefaService();
-
   void _adicionarTarefa() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => TarefaForm(
-          onSubmit: _tarefaService.adicionarTarefa,
-        ),
+        builder: (context) => const TarefaFormPage(),
       ),
     );
   }
@@ -27,10 +24,7 @@ class _HomePageState extends State<HomePage> {
   void _editarTarefa(Tarefa tarefa) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => TarefaForm(
-          tarefa: tarefa,
-          onSubmit: _tarefaService.atualizarTarefa,
-        ),
+        builder: (context) => TarefaFormPage(tarefa: tarefa),
       ),
     );
   }
@@ -48,7 +42,7 @@ class _HomePageState extends State<HomePage> {
           ),
           TextButton(
             onPressed: () {
-              _tarefaService.removerTarefa(id);
+              context.read<TarefaService>().removerTarefa(id);
               Navigator.of(context).pop();
             },
             child: const Text('Excluir'),
@@ -72,10 +66,9 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: AnimatedBuilder(
-        animation: _tarefaService,
-        builder: (context, child) {
-          if (_tarefaService.tarefas.isEmpty) {
+      body: Consumer<TarefaService>(
+        builder: (context, tarefaService, child) {
+          if (tarefaService.tarefas.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -105,14 +98,13 @@ class _HomePageState extends State<HomePage> {
           }
           return ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: _tarefaService.tarefas.length,
+            itemCount: tarefaService.tarefas.length,
             itemBuilder: (context, index) {
-              final tarefa = _tarefaService.tarefas[index];
+              final tarefa = tarefaService.tarefas[index];
               return TarefaItem(
                 tarefa: tarefa,
                 onEditar: _editarTarefa,
                 onExcluir: _excluirTarefa,
-                onConcluir: _tarefaService.marcarComoConcluida,
               );
             },
           );

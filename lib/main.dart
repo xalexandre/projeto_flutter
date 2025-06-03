@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'pages/home_page.dart';
 import 'theme/app_theme.dart';
+import 'services/tarefa_service.dart';
 
 void main() {
   runApp(const App());
@@ -11,10 +13,13 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Gerenciador de Tarefas',
-      theme: AppTheme.lightTheme,
-      home: const HomePage(),
+    return ChangeNotifierProvider<TarefaService>(
+      create: (_) => TarefaService(),
+      child: MaterialApp(
+        title: 'Gerenciador de Tarefas',
+        theme: AppTheme.lightTheme,
+        home: const HomePage(),
+      ),
     );
   }
 }
