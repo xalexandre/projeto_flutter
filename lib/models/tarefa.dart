@@ -36,4 +36,27 @@ class Tarefa {
       concluida: json['concluida'] ?? false,
     );
   }
+  
+  /// Alias para toJson para compatibilidade com Firestore
+  Map<String, dynamic> toMap() => toJson();
+  
+  /// Alias para fromJson para compatibilidade com Firestore
+  static Tarefa fromMap(Map<String, dynamic> map) => Tarefa.fromJson(map);
+  
+  /// Cria uma cópia desta tarefa com propriedades opcionalmente modificadas
+  Tarefa copyWith({
+    String? id,
+    String? nome,
+    DateTime? dataHora,
+    GeoPoint? localizacao,
+    bool? concluida,
+  }) {
+    return Tarefa(
+      id: id ?? this.id,
+      nome: nome ?? this.nome,
+      dataHora: dataHora ?? this.dataHora,
+      localizacao: localizacao ?? this.localizacao,
+      concluida: concluida ?? this.concluida,
+    );
+  }
 }

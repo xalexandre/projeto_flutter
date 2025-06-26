@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "507639561063",
+    "project_id": "projet-flutter-bebb9",
+    "storage_bucket": "projet-flutter-bebb9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:507639561063:android:435d3fc4432db7a8660dc2",
+        "android_client_info": {
+          "package_name": "br.com.brodt.projeto_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArWcOIC0c6ugAZOs2YmAmiXq6sM8n1ZRk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

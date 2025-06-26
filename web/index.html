@@ -33,6 +33,32 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-analytics.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging.js"></script>
+  
+  <!-- Configuração do Firebase -->
+  <script>
+    // Substitua esta configuração pelos valores fornecidos no console do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhZMq0vL9HyuNsoO0cjAY6-FP6tTYaXiE",
+      authDomain: "projet-flutter-bebb9.firebaseapp.com",
+      projectId: "projet-flutter-bebb9",
+      storageBucket: "projet-flutter-bebb9.firebasestorage.app",
+      messagingSenderId: "507639561063",
+      appId: "1:507639561063:web:8f0944c6e2a4fc1b660dc2",
+      measurementId: "G-97KKGLKNYR"
+    };
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+  </script>
+  
+  <!-- Flutter -->
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

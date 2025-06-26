@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/tarefa.dart';
+import '../pages/location_map_page.dart';
+import '../services/location_service.dart';
 import '../services/tarefa_service.dart';
 import '../utils/responsive_util.dart';
 
@@ -15,6 +17,24 @@ class TarefaItem extends StatelessWidget {
     required this.onEditar,
     required this.onExcluir,
   });
+  
+  void _visualizarLocalizacaoNoMapa(BuildContext context) {
+    if (tarefa.localizacao == null) return;
+    
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => LocationMapPage(
+          title: 'Localização: ${tarefa.nome}',
+          initialLocation: tarefa.localizacao,
+          selectable: false,
+        ),
+      ),
+    );
+  }
+  
+  String _formatCoordinates(double latitude, double longitude) {
+    return '${latitude.toStringAsFixed(4)}, ${longitude.toStringAsFixed(4)}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +132,17 @@ class TarefaItem extends StatelessWidget {
                                 ],
                               ),
                             ),
+                            if (tarefa.localizacao != null)
+                              PopupMenuItem(
+                                value: 'map',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.map, color: theme.colorScheme.secondary),
+                                    const SizedBox(width: 8),
+                                    const Text('Ver no mapa'),
+                                  ],
+                                ),
+                              ),
                             PopupMenuItem(
                               value: 'delete',
                               child: Row(
@@ -126,6 +157,8 @@ class TarefaItem extends StatelessWidget {
                           onSelected: (value) {
                             if (value == 'edit') {
                               onEditar(tarefa);
+                            } else if (value == 'map') {
+                              _visualizarLocalizacaoNoMapa(context);
                             } else if (value == 'delete') {
                               onExcluir(tarefa.id);
                             }
@@ -177,12 +210,21 @@ class TarefaItem extends StatelessWidget {
                             SizedBox(width: ResponsiveUtil.adaptiveWidth(context, 4)),
                             Expanded(
                               child: Text(
-                                '${tarefa.localizacao!.latitude.toStringAsFixed(4)}, ${tarefa.localizacao!.longitude.toStringAsFixed(4)}',
+                                _formatCoordinates(tarefa.localizacao!.latitude, tarefa.localizacao!.longitude),
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   fontSize: ResponsiveUtil.adaptiveFontSize(context, 12),
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.map_outlined),
+                              iconSize: 16,
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              tooltip: 'Ver no mapa',
+                              onPressed: () => _visualizarLocalizacaoNoMapa(context),
                             ),
                           ],
                         ),

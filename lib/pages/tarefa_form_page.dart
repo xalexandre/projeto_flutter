@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
+import '../components/location_search.dart';
 import '../models/tarefa.dart';
 import '../models/geo_point.dart';
+import '../pages/location_map_page.dart';
+import '../services/location_service.dart';
 import '../services/tarefa_service.dart';
 import '../utils/responsive_util.dart';
+import '../routes/app_navigator.dart';
 
 class TarefaFormPage extends StatefulWidget {
   final Tarefa? tarefa;
@@ -38,49 +41,39 @@ class _TarefaFormPageState extends State<TarefaFormPage> {
     super.dispose();
   }
 
-  Future<void> _obterLocalizacaoAtual() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+  final LocationService _locationService = LocationService();
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Serviço de localização desativado')),
-      );
-      return;
-    }
+  void _atualizarLocalizacao(GeoPoint localizacao) {
+    setState(() {
+      _localizacao = localizacao;
+    });
+  }
+  
+  void _abrirMapaSelecao() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => LocationMapPage(
+          title: 'Selecionar Localização',
+          initialLocation: _localizacao,
+          selectable: true,
+          onLocationSelected: _atualizarLocalizacao,
+        ),
+      ),
+    );
+  }
 
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Permissão de localização negada')),
-        );
-        return;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Permissão de localização permanentemente negada')),
-      );
-      return;
-    }
-
-    try {
-      final position = await Geolocator.getCurrentPosition();
-      setState(() {
-        _localizacao = GeoPoint(
-          latitude: position.latitude,
-          longitude: position.longitude,
-        );
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erro ao obter localização')),
-      );
-    }
+  void _visualizarLocalizacaoNoMapa() {
+    if (_localizacao == null) return;
+    
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => LocationMapPage(
+          title: 'Localização da Tarefa',
+          initialLocation: _localizacao,
+          selectable: false,
+        ),
+      ),
+    );
   }
 
   void _submit() {
@@ -99,7 +92,7 @@ class _TarefaFormPageState extends State<TarefaFormPage> {
         tarefaService.atualizarTarefa(tarefa);
       }
       
-      Navigator.of(context).pop();
+      AppNavigator.goBack(context);
     }
   }
 
@@ -185,22 +178,75 @@ class _TarefaFormPageState extends State<TarefaFormPage> {
               ),
                       SizedBox(height: ResponsiveUtil.adaptiveHeight(context, 16)),
                       Card(
-                        child: ListTile(
-                          title: Text(
-                            'Localização',
-                            style: TextStyle(
-                              fontSize: ResponsiveUtil.adaptiveFontSize(context, 16),
-                            ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Localização',
+                                style: TextStyle(
+                                  fontSize: ResponsiveUtil.adaptiveFontSize(context, 16),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              if (_localizacao != null) ...[
+                                ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: FutureBuilder<String>(
+                                    future: _locationService.getAddressFromCoordinates(_localizacao!),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                        return const Text('Carregando endereço...');
+                                      } else if (snapshot.hasError) {
+                                        return Text('Erro: ${snapshot.error}');
+                                      } else {
+                                        return Text(
+                                          snapshot.data ?? 'Endereço não encontrado',
+                                          style: const TextStyle(fontWeight: FontWeight.normal),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                  subtitle: Text(
+                                    _locationService.formatCoordinates(_localizacao!),
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                  leading: const Icon(Icons.location_on),
+                                  trailing: IconButton(
+                                    icon: const Icon(Icons.map),
+                                    onPressed: _visualizarLocalizacaoNoMapa,
+                                    tooltip: 'Ver no mapa',
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    TextButton(
+                                      onPressed: () => setState(() => _localizacao = null),
+                                      child: const Text('Remover'),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    TextButton(
+                                      onPressed: _abrirMapaSelecao,
+                                      child: const Text('Alterar'),
+                                    ),
+                                  ],
+                                ),
+                              ] else ...[
+                                SizedBox(
+                                  height: 250,
+                                  child: LocationSearch(
+                                    onLocationSelected: _atualizarLocalizacao,
+                                    initialLocation: _localizacao,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
-                  subtitle: Text(
-                    _localizacao == null
-                        ? 'Nenhuma localização definida'
-                        : '${_localizacao!.latitude.toStringAsFixed(4)}, ${_localizacao!.longitude.toStringAsFixed(4)}',
-                  ),
-                  leading: const Icon(Icons.location_on),
-                  onTap: _obterLocalizacaoAtual,
-                ),
-              ),
+                        ),
+                      ),
                       SizedBox(height: ResponsiveUtil.adaptiveHeight(context, 32)),
                       ElevatedButton.icon(
                         onPressed: _submit,
